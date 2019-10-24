@@ -88,7 +88,11 @@ public class AudioManager: NSObject, AudioRendering
         do
         {
             // Set category before configuring AVAudioEngine to prevent pausing any currently playing audio from another app.
-            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
+            if UserDefaults.standard.bool(forKey: "isReduceVolumeEnabled") {
+                try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: .duckOthers)
+            } else {
+                try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
+            }
         }
         catch
         {
@@ -118,7 +122,11 @@ public extension AudioManager
     {
         do
         {
-            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
+            if UserDefaults.standard.bool(forKey: "isReduceVolumeEnabled") {
+                try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: .duckOthers)
+            } else {
+                try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
+            }
             try AVAudioSession.sharedInstance().setPreferredIOBufferDuration(0.005)
             try AVAudioSession.sharedInstance().setActive(true)
         }
@@ -132,6 +140,7 @@ public extension AudioManager
     
     func stop()
     {
+        do { try AVAudioSession.sharedInstance().setActive(false) } catch { print(error) }
         self.audioPlayerNode.stop()
         self.audioEngine.stop()
         
@@ -282,14 +291,14 @@ private extension AudioManager
         }
         else
         {
-            if self.isHeadsetPluggedIn() && AVAudioSession.sharedInstance().secondaryAudioShouldBeSilencedHint
-            {
-                self.audioEngine.mainMixerNode.outputVolume = 0.0
-            }
-            else
-            {
+//            if self.isHeadsetPluggedIn() && AVAudioSession.sharedInstance().secondaryAudioShouldBeSilencedHint
+//            {
+//                self.audioEngine.mainMixerNode.outputVolume = 0.0
+//            }
+//            else
+//            {
                 self.audioEngine.mainMixerNode.outputVolume = 1.0
-            }
+//            }
         }
     }
     
