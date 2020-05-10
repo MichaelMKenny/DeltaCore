@@ -459,8 +459,8 @@ private extension GameViewController
         
         // Toggle audioManager.enabled to reset the audio buffer and ensure the audio isn't delayed from the beginning
         // This is especially noticeable when peeking a game
-        emulatorCore.audioManager.isEnabled = false
-        emulatorCore.audioManager.isEnabled = true
+//        emulatorCore.audioManager.isEnabled = false
+//        emulatorCore.audioManager.isEnabled = true
         
         return self._resumeEmulation()
     }
