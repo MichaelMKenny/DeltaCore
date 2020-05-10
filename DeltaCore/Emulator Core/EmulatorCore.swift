@@ -8,9 +8,11 @@
 
 import AVFoundation
 
-private extension Notification.Name
+extension EmulatorCore
 {
-    static let didUpdateFrame = Notification.Name("com.rileytestut.DeltaCore.didUpdateFrame")
+    @objc public static let emulationDidQuitNotification = Notification.Name("com.rileytestut.DeltaCore.emulationDidQuit")
+    
+    private static let didUpdateFrameNotification = Notification.Name("com.rileytestut.DeltaCore.didUpdateFrame")
 }
 
 public extension EmulatorCore
@@ -33,6 +35,7 @@ public extension EmulatorCore
     }
 }
 
+@objc(DLTAEmulatorCore)
 public final class EmulatorCore: NSObject
 {
     //MARK: - Properties -
@@ -100,6 +103,8 @@ public final class EmulatorCore: NSObject
         self.gameSaveURL = self.game.gameSaveURL
         
         super.init()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(EmulatorCore.emulationDidQuit), name: EmulatorCore.emulationDidQuitNotification, object: nil)
     }
 }
 
@@ -213,13 +218,13 @@ public extension EmulatorCore
     {
         let semaphore = DispatchSemaphore(value: 0)
 
-        let token = NotificationCenter.default.addObserver(forName: .didUpdateFrame, object: self, queue: nil) { (notification) in
+        let token = NotificationCenter.default.addObserver(forName: EmulatorCore.didUpdateFrameNotification, object: self, queue: nil) { (notification) in
             semaphore.signal()
         }
 
         semaphore.wait()
 
-        NotificationCenter.default.removeObserver(token, name: .didUpdateFrame, object: self)
+        NotificationCenter.default.removeObserver(token, name: EmulatorCore.didUpdateFrameNotification, object: self)
     }
 }
 
@@ -294,18 +299,7 @@ public extension EmulatorCore
 {
     func activate(_ cheat: CheatProtocol) throws
     {
-        var success = true
-        
-        let codes = cheat.code.split(separator: "\n")
-        for code in codes
-        {
-            if !self.deltaCore.emulatorBridge.addCheatCode(String(code), type: cheat.type.rawValue)
-            {
-                success = false
-                break
-            }
-        }
-        
+        let success = self.deltaCore.emulatorBridge.addCheatCode(String(cheat.code), type: cheat.type.rawValue)
         if success
         {
             self.cheatCodes[cheat.code] = cheat.type
@@ -335,11 +329,7 @@ public extension EmulatorCore
         
         for (cheatCode, type) in self.cheatCodes
         {
-            let codes = cheatCode.split(separator: "\n")
-            for code in codes
-            {
-                self.deltaCore.emulatorBridge.addCheatCode(String(code), type: type.rawValue)
-            }
+            self.deltaCore.emulatorBridge.addCheatCode(String(cheatCode), type: type.rawValue)
         }
         
         self.deltaCore.emulatorBridge.updateCheats()
@@ -486,10 +476,10 @@ private extension EmulatorCore
                 let state = self._state
                 
                 defer
-                {
+                {                    
                     if self.previousState != state
                     {
-                        NotificationCenter.default.post(name: .didUpdateFrame, object: self)
+                        NotificationCenter.default.post(name: EmulatorCore.didUpdateFrameNotification, object: self)
                         self.previousState = state
                     }
                 }
@@ -519,5 +509,16 @@ private extension EmulatorCore
         }
         
         self.updateHandler?(self)
+    }
+}
+
+private extension EmulatorCore
+{
+    @objc func emulationDidQuit(_ notification: Notification)
+    {
+        DispatchQueue.global(qos: .userInitiated).async {
+            // Dispatch onto global queue to prevent deadlock.
+            self.stop()
+        }
     }
 }

@@ -63,7 +63,7 @@ public class GameView: UIView
     public var outputImage: CIImage? {
         guard let inputImage = self.inputImage else { return nil }
         
-        var image: CIImage? = inputImage.clampedToExtent()
+        var image: CIImage?
         
         switch self.samplerMode
         {
@@ -77,8 +77,7 @@ public class GameView: UIView
             image = filter.outputImage
         }
         
-        let outputImage = image?.cropped(to: inputImage.extent)
-        return outputImage
+        return image
     }
     
     internal var eaglContext: EAGLContext {
@@ -88,7 +87,7 @@ public class GameView: UIView
             // to self.glkView may crash if we've already rendered to a game view.
             EAGLContext.setCurrent(nil)
             
-            self.glkView.context = newValue
+            self.glkView.context = EAGLContext(api: .openGLES2, sharegroup: newValue.sharegroup)!
             self.context = self.makeContext()
         }
     }
@@ -120,6 +119,7 @@ public class GameView: UIView
     private func initialize()
     {        
         self.glkView.frame = self.bounds
+        self.glkView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         self.glkView.delegate = self.glkViewDelegate
         self.glkView.enableSetNeedsDisplay = false
         self.addSubview(self.glkView)
@@ -138,20 +138,7 @@ public class GameView: UIView
     {
         super.layoutSubviews()
         
-        if let outputImage = self.outputImage
-        {
-            let frame = AVMakeRect(aspectRatio: outputImage.extent.size, insideRect: self.bounds)
-            self.glkView.frame = frame
-            
-            self.glkView.isHidden = false
-        }
-        else
-        {
-            let frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.height)
-            self.glkView.frame = frame
-            
-            self.glkView.isHidden = true
-        }
+        self.glkView.isHidden = (self.outputImage == nil)
     }
 }
 
