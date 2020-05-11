@@ -68,6 +68,10 @@ public class AudioManager: NSObject, AudioRendering
         }
     }
     
+    private var shouldStartAudioMuted: Bool {
+        return AVAudioSession.sharedInstance().isOtherAudioPlaying && shouldStartAtReducedAudio == false
+    }
+    
     private let audioEngine: AVAudioEngine
     private let audioPlayerNode: AVAudioPlayerNode
     private let timePitchEffect: AVAudioUnitTimePitch
@@ -118,7 +122,7 @@ public extension AudioManager
 {
     func start()
     {
-        if AVAudioSession.sharedInstance().isOtherAudioPlaying && shouldStartAtReducedAudio == false {
+        if self.shouldStartAudioMuted {
             return
         }
         
@@ -240,6 +244,10 @@ private extension AudioManager
     
     @objc func resetAudioEngine()
     {
+        if shouldStartAudioMuted {
+            return
+        }
+        
         self.renderingQueue.sync {
             self.audioPlayerNode.reset()
             
