@@ -80,10 +80,8 @@ public class AudioManager: NSObject, AudioRendering
     // Used to synchronize access to self.audioPlayerNode without causing deadlocks.
     private let renderingQueue = DispatchQueue(label: "com.rileytestut.Delta.AudioManager.renderingQueue")
         
-    public init(audioFormat: AVAudioFormat, shouldStartAtReducedAudio: Bool)
+    public init(audioFormat: AVAudioFormat)
     {
-        self.shouldStartAtReducedAudio = shouldStartAtReducedAudio
-        
         self.audioFormat = audioFormat
         
         // Temporary. Will be replaced with more accurate RingBuffer in resetAudioEngine().
@@ -92,11 +90,7 @@ public class AudioManager: NSObject, AudioRendering
         do
         {
             // Set category before configuring AVAudioEngine to prevent pausing any currently playing audio from another app.
-            if UserDefaults.standard.bool(forKey: "isReduceVolumeEnabled") && shouldStartAtReducedAudio {
-                try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: .duckOthers)
-            } else {
-                try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
-            }
+            try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default)
         }
         catch
         {
@@ -126,6 +120,15 @@ public extension AudioManager
     {
         do
         {
+            do
+            {
+                self.audioEngine.stop()
+                try AVAudioSession.sharedInstance().setActive(false)
+            }
+            catch
+            {
+                print(error)
+            }
             if UserDefaults.standard.bool(forKey: "isReduceVolumeEnabled") && shouldStartAtReducedAudio {
                 try AVAudioSession.sharedInstance().setCategory(.ambient, mode: .default, options: .duckOthers)
             } else {

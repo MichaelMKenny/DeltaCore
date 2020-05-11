@@ -46,8 +46,12 @@ public final class EmulatorCore: NSObject
     public var updateHandler: ((EmulatorCore) -> Void)?
     public var saveHandler: ((EmulatorCore) -> Void)?
     
-    public var shouldStartAtReducedAudio = false
-    public private(set) var audioManager: AudioManager!
+    public var shouldStartAtReducedAudio = false {
+        didSet {
+            audioManager.shouldStartAtReducedAudio = self.shouldStartAtReducedAudio
+        }
+    }
+    public private(set) lazy var audioManager: AudioManager = AudioManager(audioFormat: self.deltaCore.audioFormat)
     public private(set) lazy var videoManager: VideoManager = VideoManager(videoFormat: self.deltaCore.videoFormat)
     
     // KVO-Compliant
@@ -121,8 +125,7 @@ public extension EmulatorCore
         
         self._state = .running
         defer { self.state = self._state }
-        
-        self.audioManager = AudioManager(audioFormat: self.deltaCore.audioFormat, shouldStartAtReducedAudio: self.shouldStartAtReducedAudio)
+
         self.deltaCore.emulatorBridge.audioRenderer = self.audioManager
         self.deltaCore.emulatorBridge.videoRenderer = self.videoManager
         self.deltaCore.emulatorBridge.saveUpdateHandler = { [unowned self] in
