@@ -118,6 +118,10 @@ public extension AudioManager
 {
     func start()
     {
+        if AVAudioSession.sharedInstance().isOtherAudioPlaying && shouldStartAtReducedAudio == false {
+            return
+        }
+        
         do
         {
             do
