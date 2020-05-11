@@ -298,14 +298,7 @@ private extension AudioManager
         }
         else
         {
-//            if self.isHeadsetPluggedIn() && AVAudioSession.sharedInstance().secondaryAudioShouldBeSilencedHint
-//            {
-//                self.audioEngine.mainMixerNode.outputVolume = 0.0
-//            }
-//            else
-//            {
-                self.audioEngine.mainMixerNode.outputVolume = 1.0
-//            }
+            self.audioEngine.mainMixerNode.outputVolume = 0.5
         }
     }
     
