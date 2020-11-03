@@ -96,6 +96,14 @@ open class GameViewController: UIViewController, GameControllerReceiver
     private var _previousControllerSkin: ControllerSkinProtocol?
     private var _previousControllerSkinTraits: ControllerSkin.Traits?
     
+    fileprivate var isSideBySideDSSkin: Bool {
+        if let controllerSkin = self.controllerView.controllerSkin {
+            return controllerSkin.identifier == "com.coofdylabs.ds.side-by-side"
+        }
+        
+        return false
+    }
+    
     /// UIViewController
     open override var prefersStatusBarHidden: Bool {
         return true
@@ -292,7 +300,7 @@ open class GameViewController: UIViewController, GameControllerReceiver
             let controllerSkin = self.controllerView.controllerSkin,
             let traits = self.controllerView.controllerSkinTraits,
             let screens = controllerSkin.screens(for: traits),
-            !self.controllerView.isHidden
+            !self.controllerView.isHidden || self.isSideBySideDSSkin
         {
             for (screen, gameView) in zip(screens, self.gameViews)
             {
@@ -358,7 +366,7 @@ extension GameViewController
             let controllerSkin = self.controllerView.controllerSkin,
             let traits = self.controllerView.controllerSkinTraits,
             let screens = controllerSkin.screens(for: traits),
-            !self.controllerView.isHidden
+            !self.controllerView.isHidden || self.isSideBySideDSSkin
         {
             for screen in screens
             {
