@@ -96,7 +96,7 @@ open class GameViewController: UIViewController, GameControllerReceiver
     private var _previousControllerSkin: ControllerSkinProtocol?
     private var _previousControllerSkinTraits: ControllerSkin.Traits?
     
-    fileprivate var isSideBySideDSSkin: Bool {
+    public var isSideBySideDSSkin: Bool {
         if let controllerSkin = self.controllerView.controllerSkin {
             return controllerSkin.identifier == "com.coofdylabs.ds.side-by-side"
         }
